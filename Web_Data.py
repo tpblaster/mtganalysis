@@ -5,6 +5,8 @@ from bs4 import BeautifulSoup
 
 import Authenticate
 import Database_Interaction
+import TCG_Card_Data
+import pandas as pd
 
 
 def get_ckz_data():
@@ -89,6 +91,21 @@ def build_ckz_set_database(cnx):
             print(set_data[x][0])
 
 
+def find_ckz_set_data(cnx):
+    cursor = cnx.cursor()
+    website_data = get_ckz_full_buylist()
+    set_data = []
+    options = website_data.findAll('option')
+    query = """SELECT set_id FROM ckz_set_data"""
+
+    for i in range(0, len(options)):
+        set_name = options[i].text.strip()
+        set_value = options[i]["value"]
+        abbreviation = get_ckz_set_abbreviation(set_value)
+        if abbreviation is not None:
+            set_data.append([set_name, set_value, abbreviation])
+
+
 def get_ckz_set_abbreviation(set_id):
     url = 'http://www.cernyrytir.cz/katalog_vykup.php'
     data = {
@@ -105,13 +122,44 @@ def get_ckz_set_abbreviation(set_id):
 
 
 def parse_buylist_compare_to_tcg(cnx, bearer):
+    total_data = []
     cursor = cnx.cursor()
     query = """SELECT set_id, tcg_group_id FROM ckz_set_data"""
     cursor.execute(query)
-    ans = cursor.fetchall()
-    for x in range(0, len(ans)):
-        buylist_data = parse_doc_data(get_ckz_buylist_set(0, ans[x][0]))
+    database_data = cursor.fetchall()
+    for x in range(0, len(database_data)):
+        buylist_data = parse_doc_data(get_ckz_buylist_set(0, database_data[x][0]))
         for y in buylist_data:
+            query = """SELECT product_id FROM tcg_card_data WHERE group_id = {} AND card_name = \'{}\'""".format(
+                database_data[x][1], y[1])
+            cursor.execute(query)
+            ans = cursor.fetchall()
+            if len(ans) == 1:
+                y.append(ans[0][0])
+                sku = Database_Interaction.get_sku_from_product_id(cnx, ans[0][0], 1, 1, 1)
+                if len(sku) > 0:
+                    y.append(sku[0][0])
+                    buylist_high = TCG_Card_Data.get_buylist_for_sku(bearer, sku[0][0])
+                    if buylist_high is not None:
+                        y.append(buylist_high)
+                        y.append(round((1.1 * (float(y[3]))) - (1.1 * buylist_high), 2))
+                    else:
+                        y.append(0)
+                        y.append(0)
+                else:
+                    y.append(0)
+                    y.append(0)
+                    y.append(0)
+            else:
+                y.append(0)
+                y.append(0)
+                y.append(0)
+                y.append(0)
+            print(y)
+            total_data.append(y)
+    df = pd.DataFrame(total_data)
+    df.to_csv("1-30-20BuylistData3.csv", sep=',')
+    return df
 
 
 auth = Authenticate.authenticate_tcgplayer()
