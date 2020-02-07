@@ -1,5 +1,6 @@
 import sys
 
+import pandas
 import requests
 from bs4 import BeautifulSoup
 
@@ -124,14 +125,18 @@ def get_ckz_set_abbreviation(set_id):
 def parse_buylist_compare_to_tcg(cnx, bearer):
     total_data = []
     cursor = cnx.cursor()
-    query = """SELECT set_id, tcg_group_id FROM ckz_set_data"""
+    query = """SELECT set_id, tcg_group_id FROM ckz_set_data LIMIT 10"""
     cursor.execute(query)
     database_data = cursor.fetchall()
     for x in range(0, len(database_data)):
         buylist_data = parse_doc_data(get_ckz_buylist_set(0, database_data[x][0]))
         for y in buylist_data:
+            if "´" in y[1]:
+                name = y[1].replace("´", "''")
+            else:
+                name = y[1]
             query = """SELECT product_id FROM tcg_card_data WHERE group_id = {} AND card_name = \'{}\'""".format(
-                database_data[x][1], y[1])
+                database_data[x][1], name)
             cursor.execute(query)
             ans = cursor.fetchall()
             if len(ans) == 1:
@@ -158,7 +163,20 @@ def parse_buylist_compare_to_tcg(cnx, bearer):
             print(y)
             total_data.append(y)
     df = pd.DataFrame(total_data)
-    df.to_csv("1-30-20BuylistData3.csv", sep=',')
+    return df
+
+
+def build_buylist_import(path, data):
+    df = pandas.read_csv(path)
+    for y in data.index:
+        if data.at[y, 7] is not None and 1.2*float(data.at[y, 7]) < (1.1*float(data.at[y, 3])):
+            for x in df.index:
+                if df['TCGplayer Id'][x] == data.at[y, 6]:
+                    if float(data.at[y, 7]) + .01 <= 1000:
+                        df.at[x, 'My Buylist Price'] = float(data.at[y, 7]) + .01
+                    else:
+                        df.at[x, 'My Buylist Price'] = float(data.at[y, 7])
+                    df.at[x, 'Add to Buylist Quantity'] = data.at[y, 4]
     return df
 
 
@@ -170,4 +188,6 @@ else:
     print("tcg auth did not work")
     sys.exit()
 cnx = Database_Interaction.connect_to_database("root", "<_=kE8dG;*Dmbz(G")
-parse_buylist_compare_to_tcg(cnx, bearer)
+data = parse_buylist_compare_to_tcg(cnx, bearer)
+final_frame = build_buylist_import("C:\\Users\\proma\\Desktop\\TCGplayer__Buylist_Custom_Export_20200130_124032.csv", data)
+final_frame.to_csv("euro-data4.csv", sep=',')
