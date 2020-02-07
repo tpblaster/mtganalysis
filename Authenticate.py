@@ -2,10 +2,9 @@ import requests
 import json
 
 
-def authenticate_tcgplayer():
+def authenticate_tcgplayer(client_public, client_secret):
     url = "https://api.tcgplayer.com/token"
-    payload = "grant_type=client_credentials&client_id=3AF83931-8FD3-4205-A5A5-F6EBBA00C0DC&client_secret=2E612E31" \
-              "-1797-456C-A046-A3AA74604988 "
+    payload = "grant_type=client_credentials&client_id=" + str(client_public)+"&client_secret=" + str(client_secret)
     headers = {
         'Content-Type': "application/json",
         'User-Agent': "PostmanRuntime/7.20.1",
