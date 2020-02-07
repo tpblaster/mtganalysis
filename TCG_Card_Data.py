@@ -116,7 +116,8 @@ def get_direct_low_from_product_id(bearer, product_id, foil):
         for x in range(0, len(data["results"])):
             if (data["results"][x])["subTypeName"] == foil:
                 price = (data["results"][x])["directLowPrice"]
-        return price
+        if price is not None:
+            return price
     else:
         price = (data["results"][0])["directLowPrice"]
         return price
