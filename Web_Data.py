@@ -8,6 +8,7 @@ import Authenticate
 import Database_Interaction
 import TCG_Card_Data
 import pandas as pd
+import config
 
 
 def get_ckz_data():
@@ -180,14 +181,14 @@ def build_buylist_import(path, data):
     return df
 
 
-auth = Authenticate.authenticate_tcgplayer()
+auth = Authenticate.authenticate_tcgplayer(config.client_public, config.client_secret)
 if auth != 0:
     bearer = auth
     print("tcg auth done")
 else:
     print("tcg auth did not work")
     sys.exit()
-cnx = Database_Interaction.connect_to_database("root", "<_=kE8dG;*Dmbz(G")
+cnx = Database_Interaction.connect_to_database("root", config.root_password)
 data = parse_buylist_compare_to_tcg(cnx, bearer)
 final_frame = build_buylist_import("C:\\Users\\proma\\Desktop\\TCGplayer__Buylist_Custom_Export_20200130_124032.csv", data)
 final_frame.to_csv("euro-data4.csv", sep=',')
