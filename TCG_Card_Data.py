@@ -4,24 +4,12 @@ import json
 
 def get_category_groups(bearer, offset, category):
     url = "http://api.tcgplayer.com/v1.35.0/catalog/categories/" + str(category) + "/groups?offset=" + str(offset) + ""
-
     headers = {
         'Authorization': "Bearer " + bearer,
-        'User-Agent': "PostmanRuntime/7.20.1",
-        'Accept': "*/*",
-        'Cache-Control': "no-cache",
-        'Postman-Token': "fb6768de-ee70-4806-b939-89c4787c3af7,d87caabc-12e8-47fa-97f0-d57f621c5285",
-        'Host': "api.tcgplayer.com",
-        'Accept-Encoding': "gzip, deflate",
-        'Connection': "keep-alive",
-        'cache-control': "no-cache"
     }
-
     response = requests.request("GET", url, headers=headers)
     data = json.loads(response.text)
-
     if data["success"] and len(data["results"]) > 0:
-
         return data
     else:
         print(data)
@@ -31,17 +19,8 @@ def get_category_groups(bearer, offset, category):
 
 def get_number_of_groups(bearer, category):
     url = "http://api.tcgplayer.com/v1.35.0/catalog/categories/" + str(category) + "/groups"
-
     headers = {
         'Authorization': "Bearer " + bearer,
-        'User-Agent': "PostmanRuntime/7.20.1",
-        'Accept': "*/*",
-        'Cache-Control': "no-cache",
-        'Postman-Token': "fb6768de-ee70-4806-b939-89c4787c3af7,d87caabc-12e8-47fa-97f0-d57f621c5285",
-        'Host': "api.tcgplayer.com",
-        'Accept-Encoding': "gzip, deflate",
-        'Connection': "keep-alive",
-        'cache-control': "no-cache"
     }
     response = requests.request("GET", url, headers=headers)
     data = json.loads(response.text)
@@ -67,17 +46,8 @@ def get_category_group_all(bearer, category):
 def get_group_cards(bearer, group, offset):
     url = "http://api.tcgplayer.com/v1.32.0/catalog/products?categoryId=1&groupId=" + str(
         group) + "&productTypes=cards&offset=" + str(offset)
-
     headers = {
-        'Authorization': "Bearer " + bearer,
-        'User-Agent': "PostmanRuntime/7.20.1",
-        'Accept': "*/*",
-        'Cache-Control': "no-cache",
-        'Postman-Token': "fb6768de-ee70-4806-b939-89c4787c3af7,d87caabc-12e8-47fa-97f0-d57f621c5285",
-        'Host': "api.tcgplayer.com",
-        'Accept-Encoding': "gzip, deflate",
-        'Connection': "keep-alive",
-        'cache-control': "no-cache"
+        'Authorization': "Bearer " + bearer
     }
     response = requests.request("GET", url, headers=headers)
     data = json.loads(response.text)
@@ -103,14 +73,10 @@ def get_group_cards_all(bearer, group):
 
 def get_direct_low_from_product_id(bearer, product_id, foil):
     url = "http://api.tcgplayer.com/v1.35.0/pricing/product/" + str(product_id)
-
-    payload = {}
     headers = {
         'Authorization': "Bearer " + bearer
     }
-
-    response = requests.request("GET", url, headers=headers, data=payload)
-
+    response = requests.request("GET", url, headers=headers)
     data = json.loads(response.text)
     if len(data["results"]) > 1:
         for x in range(0, len(data["results"])):
