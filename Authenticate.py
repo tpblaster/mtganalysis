@@ -1,6 +1,8 @@
 import requests
 import json
 
+from config import client_public, client_secret, access_code
+
 
 def authenticate_tcgplayer(client_public, client_secret):
     url = "https://api.tcgplayer.com/token"
@@ -14,10 +16,10 @@ def authenticate_tcgplayer(client_public, client_secret):
         return 0
 
 
-def authenticate_tcgplayer_store(client_public, client_secret, access_token):
+def authenticate_tcgplayer_store(client_public, client_secret, access_code):
     bearer = authenticate_tcgplayer(client_public, client_secret)
     if bearer != 0:
-        url = "http://api.tcgplayer.com/v1.32.0/app/authorize/" + str(access_token)
+        url = "http://api.tcgplayer.com/v1.32.0/app/authorize/" + str(access_code)
         headers = {
             'Authorization': "Bearer " + bearer
         }
@@ -26,3 +28,4 @@ def authenticate_tcgplayer_store(client_public, client_secret, access_token):
     else:
         print("Store Auth Failed")
         return 0
+authenticate_tcgplayer_store(client_public, client_secret, access_code)
